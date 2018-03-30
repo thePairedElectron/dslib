@@ -1,0 +1,75 @@
+package cskit.graph.flow;
+
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import cskit.Utilities;
+import cskit.Utilities.Pair;
+import cskit.graph.DirectedGraphNode;
+import cskit.graph.DirectedGraphWeightFunction;
+
+public class EdmondKarpFlowFinder extends FlowFinder {
+
+    @Override
+    public Pair<DirectedGraphWeightFunction, Double> find(DirectedGraphNode source,
+                                             DirectedGraphNode sink,
+                                             DirectedGraphWeightFunction c) {
+        double flow = 0.0;
+        DirectedGraphWeightFunction f = new DirectedGraphWeightFunction(); // The flow map.
+        List<DirectedGraphNode> path = null;
+
+        while ((path = findAugmentingPath(source, sink, c, f)).size() > 1) {
+            double df = findMinimumEdgeAndRemove(path, c, f);
+            flow += df;
+        }
+
+        return new Pair<DirectedGraphWeightFunction, Double>(f, flow);
+    }
+
+    /**
+     * This method is essentially breadth-first search over the residual graph.
+     *
+     * @param source the source node.
+     * @param sink the sink node.
+     * @param c the capacity map.
+     * @param f the flow map.
+     *
+     * @return an augmenting path.
+     */
+    private List<DirectedGraphNode> findAugmentingPath(DirectedGraphNode source,
+                                                       DirectedGraphNode sink,
+                                                       DirectedGraphWeightFunction c,
+                                                       DirectedGraphWeightFunction f) {
+        Deque<DirectedGraphNode> queue = new LinkedList<DirectedGraphNode>();
+        Map<DirectedGraphNode, DirectedGraphNode> parentMap =
+                   new HashMap<DirectedGraphNode, DirectedGraphNode>();
+
+        queue.add(source);
+        parentMap.put(source, null);
+
+        while (queue.isEmpty() == false) {
+            DirectedGraphNode current = queue.removeFirst();
+
+            if (current.equals(sink)) {
+                return Utilities.tracebackPath(current, parentMap);
+            }
+
+            for (DirectedGraphNode u : current.allIterable()) {
+                if (parentMap.containsKey(u)) {
+                    continue;
+                }
+
+                if (residualEdgeWeight(current, u, f, c) > 0.0) {
+                    parentMap.put(u, current);
+                    queue.addLast(u);
+                }
+            }
+        }
+
+        return java.util.Collections.<DirectedGraphNode>emptyList();
+    }
+}

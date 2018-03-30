@@ -1,0 +1,1148 @@
+package cskit;
+
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
+import cskit.Utilities.Pair;
+import cskit.Utilities.Triple;
+import static cskit.Utilities.Triple;
+import static cskit.Utilities.allWeakEquals;
+import static cskit.Utilities.debugPrintArray;
+import static cskit.Utilities.epsilonEquals;
+import static cskit.Utilities.generateSimpleGraph;
+import static cskit.Utilities.getPathCost;
+import static cskit.Utilities.getPresortedArray;
+import static cskit.Utilities.getRandomGraph;
+import static cskit.Utilities.getRandomIntegerArray;
+import static cskit.Utilities.isConnectedPath;
+import static cskit.Utilities.isSorted;
+import static cskit.Utilities.isSpanningTree;
+import static cskit.Utilities.line;
+import static cskit.Utilities.pathsAreSame;
+import static cskit.Utilities.spanningTreesEqual;
+import static cskit.Utilities.sumEdgeWeights;
+import static cskit.Utilities.title;
+import static cskit.Utilities.title2;
+import cskit.ds.list.TreeList;
+import cskit.ds.pq.BinaryHeap;
+import cskit.ds.pq.FibonacciHeap;
+import cskit.ds.pq.PriorityQueue;
+import cskit.ds.tree.OrderStatisticTree;
+import cskit.graph.DirectedGraphNode;
+import cskit.graph.DirectedGraphWeightFunction;
+import cskit.graph.UndirectedGraphEdge;
+import cskit.graph.UndirectedGraphNode;
+import cskit.graph.UndirectedGraphWeightFunction;
+import cskit.graph.flow.BidirectionalEdmondKarpFlowFinder;
+import cskit.graph.flow.EdmondKarpFlowFinder;
+import cskit.graph.flow.FlowFinder;
+import cskit.graph.mst.KruskalMSTFinder;
+import cskit.graph.mst.MinimumSpanningTreeFinder;
+import cskit.graph.mst.PrimMSTFinder;
+import cskit.graph.p2psp.general.AStarFinder;
+import cskit.graph.p2psp.general.BHPAFinder;
+import cskit.graph.p2psp.general.BidirectionalDijkstraFinder;
+import cskit.graph.p2psp.general.CoordinateMap;
+import cskit.graph.p2psp.general.DijkstraFinder;
+import cskit.graph.p2psp.general.EuclidianMetric;
+import cskit.graph.p2psp.general.FastSuboptimalFinder;
+import cskit.graph.p2psp.general.GeneralPathFinder;
+import cskit.graph.p2psp.general.WhangboFinder;
+import cskit.graph.p2psp.uniform.BreadthFirstSearchFinder;
+import cskit.graph.p2psp.uniform.BidirectionalBFSFinder;
+import cskit.graph.p2psp.uniform.ParallelBidirectionalBFSFinder;
+import cskit.graph.p2psp.uniform.UniformCostPathFinder;
+import cskit.sorting.BatchersSort;
+import cskit.sorting.CombSort;
+import cskit.sorting.CountingSort;
+import cskit.sorting.HeapSelectionSort;
+import cskit.sorting.HeapSort;
+import cskit.sorting.IterativeMergeSort;
+import cskit.sorting.NaturalMergeSort;
+import cskit.sorting.ObjectSortingAlgorithm;
+import cskit.sorting.TreeSort;
+
+/**
+ * Hello from cskit. This is a performance demo.
+ */
+public class Demo{
+
+    public static void main(String... args) {
+//        debugTreeList();
+//        debugTreeList3();
+//        profileTreeList();
+//        profileObjectSortingAlgorithms(new BatchersSort<Integer>(),
+//                                       new CombSort<Integer>(),
+//                                       new CountingSort<Integer>(),
+//                                       new HeapSelectionSort<Integer>(),
+//                                       new IterativeMergeSort<Integer>(),
+//                                       new NaturalMergeSort<Integer>(),
+//                                       new TreeSort<Integer>(),
+//                                       new HeapSort<Integer>(
+//                                            new BinaryHeap<Integer, Integer>()),
+//                                       new HeapSort<Integer>(
+//                                            new FibonacciHeap<Integer, Integer>())
+//                );
+//        profileShortestPathAlgorithms();
+        profileBreadthFirstSearchAlgorithms();
+//        profileOrderStatisticTree();
+//        profileMaxFlowAlgorithms();
+//        profileMSTAlgorithms();
+//        debugMaxFlowAlgorithms();
+//        profileFibonacciHeap();
+    }
+
+    public static void profileOrderStatisticTree() {
+        title("OrderStatisticTree demo");
+        OrderStatisticTree<Integer, Integer> m1 =
+                new OrderStatisticTree<Integer, Integer>();
+        Map<Integer, Integer> m2 = new TreeMap<Integer, Integer>();
+
+        long ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; ++i) {
+            m1.put(i, i);
+        }
+
+        long tb = System.currentTimeMillis();
+
+        System.out.println("OST.put() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; ++i) {
+            m2.put(i, i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("TreeMap.put() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 102000; ++i) {
+            m1.get(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("OST.get() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 102000; ++i) {
+            m2.get(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("TreeMap.get() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 102000; ++i) {
+            m1.remove(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("OST.remove() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 102000; ++i) {
+            m2.remove(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("TreeMap.remove() in " + (tb - ta) + " ms.");
+
+        for (int i = 0; i < 100000; ++i) {
+            m1.put(i, i);
+            m2.put(i, i);
+        }
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 20000; ++i) {
+            m1.entryAt(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("OST.entryAt() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 20000; ++i) {
+            getFromTreeMapHack(i, m2);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("TreeMap dirty select() hack in " + (tb - ta)
+                + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 20000; ++i) {
+            m1.rankOf(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("OST.rankOf() in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 20000; ++i) {
+            getRankOfTreeMapHack(i, m2);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("TreeMap dirty rankOf() hack in " + (tb - ta)
+                + " ms.");
+
+        line();
+    }
+
+    private static <K, V>   int getRankOfTreeMapHack(K key, Map<K, V> map) {
+        int index = 0;
+
+        for (K k : map.keySet()) {
+            if (k.equals(key)) {
+                return index;
+            }
+
+            ++index;
+        }
+
+        return -1;
+    }
+
+    private static <K, V> K getFromTreeMapHack(int key, Map<K, V> map) {
+        int pos = 0;
+
+        for (K k : map.keySet()) {
+            if (key == pos) {
+                return k;
+            }
+
+            pos++;
+        }
+
+        return null;
+    }
+
+    public static void profileBreadthFirstSearchAlgorithms() {
+        title("Uniform cost graph search");
+        final long SEED = System.currentTimeMillis();
+        final Random r = new Random(SEED);
+        final int SIZE = 100000;
+        final float LOAD_FACTOR = 5.5f / SIZE;
+
+        System.out.println("Nodes in the graph: " + SIZE + ", load factor: "
+                + LOAD_FACTOR);
+
+        System.out.println("Seed: " + SEED);
+
+        List<DirectedGraphNode> graph =
+                generateSimpleGraph(SIZE, LOAD_FACTOR, r);
+
+        DirectedGraphNode source = graph.get(r.nextInt(SIZE));
+        DirectedGraphNode target = graph.get(r.nextInt(SIZE));
+
+        UniformCostPathFinder finder1 =
+                new BreadthFirstSearchFinder();
+
+        UniformCostPathFinder finder2 =
+                new BidirectionalBFSFinder();
+
+        UniformCostPathFinder finder3 =
+                new ParallelBidirectionalBFSFinder();
+        
+        long ta = System.currentTimeMillis();
+        List<DirectedGraphNode> path1 = finder1.find(source, target);
+        long tb = System.currentTimeMillis();
+
+        System.out.println("BreadthFirstSearchFinder in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+        List<DirectedGraphNode> path2 = finder2.find(source, target);
+        tb = System.currentTimeMillis();
+
+        System.out.println("BidirectionalBFSFinder in "
+                + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+        List<DirectedGraphNode> path3 = finder3.find(source, target);
+        tb = System.currentTimeMillis();
+
+        System.out.println("ParallelBidirectionalBFSFinder in "
+                + (tb - ta) + " ms.");
+        
+        line();
+
+        boolean eq = path1.size() == path2.size()
+                  && path2.size() == path3.size();
+
+        if (eq == true) {
+            System.out.println("Paths are of same length: " + eq
+                    + ", length: " + path1.size());
+        } else {
+            System.out.println("Erroneous paths! Lengths: "
+                    + path1.size() + ", " + path2.size()
+                    + " and " + path3.size() + ".");
+        }
+
+        boolean ok1 = (isConnectedPath(path1)
+                && path1.get(0).equals(source)
+                && path1.get(path1.size() - 1).equals(target));
+
+        boolean ok2 = (isConnectedPath(path2)
+                && path2.get(0).equals(source)
+                && path2.get(path2.size() - 1).equals(target));
+
+        boolean ok3 = (isConnectedPath(path3)
+                && path3.get(0).equals(source)
+                && path3.get(path3.size() - 1).equals(target));
+
+        System.out.println("Breadth-first search path OK: " + ok1);
+        System.out.println("Bidirectional breadth-first search path OK: "
+                + ok2);
+        System.out.println("Bidirectional parallel BFS path OK: "
+                + ok3);
+        
+        line();
+
+        System.gc();
+    }
+
+    private static void profileObjectSortingAlgorithms(
+            ObjectSortingAlgorithm<Integer>... algos) {
+        title("Object sorting algorithms");
+
+        ////
+
+        long SEED = System.currentTimeMillis();
+
+        System.out.println("Seed: " + SEED);
+
+        int SIZE = 200000;
+        Random r = new Random();
+
+        Integer[] array = getRandomIntegerArray(SIZE, 0, 100, r);
+
+        profileSortingAlgorithmsOn(array, "Small amount of different elements"
+                + ", size: " + SIZE + ", random order", algos);
+
+        ////
+
+        SIZE = 20000;
+
+        array = getRandomIntegerArray(SIZE, 0, 100, r);
+
+        profileSortingAlgorithmsOn(array, "Small amount of different elements"
+                + ", size: " + SIZE + ", random order", algos);
+
+        ////
+
+        SIZE = 200000;
+
+        array = getRandomIntegerArray(SIZE, r);
+
+        profileSortingAlgorithmsOn(array, "Random elements, size: " + SIZE,
+                                   algos);
+
+        ////
+
+        SIZE = 20000;
+
+        array = getRandomIntegerArray(SIZE, r);
+
+        profileSortingAlgorithmsOn(array, "Random elements, size: " + SIZE,
+                                   algos);
+
+        ////
+
+        SIZE = 200000;
+        int RUNS = 16;
+
+        array = getPresortedArray(SIZE, RUNS);
+
+        profileSortingAlgorithmsOn(array, "Presorted array of " + SIZE +
+                " elements with " + RUNS + " runs", algos);
+
+        ////
+
+        SIZE = 20000;
+        RUNS = 16;
+
+        array = getPresortedArray(SIZE, RUNS);
+
+        profileSortingAlgorithmsOn(array, "Presorted array of " + SIZE +
+                " elements with " + RUNS + " runs", algos);
+    }
+
+    private static void profileSortingAlgorithmsOn(
+            Integer[] array, String title,
+            ObjectSortingAlgorithm<Integer>... algos) {
+        title2(title);
+
+        // + 1 for Arrays.sort().
+        Integer[][] arrays = new Integer[algos.length + 1][];
+        arrays[0] = array;
+
+        for (int i = 1; i < arrays.length; ++i) {
+            arrays[i] = arrays[0].clone();
+        }
+
+        // - 1, for it is the arrray going to Arrays.sort().
+        for (int i = 0; i < arrays.length - 1; ++i) {
+            System.out.print(algos[i].getClass().getName() + " in ");
+
+            long ta = System.currentTimeMillis();
+            algos[i].sort(arrays[i]);
+            long tb = System.currentTimeMillis();
+
+            System.out.print((tb - ta) + " ms, sorted: ");
+            System.out.println(isSorted(arrays[i]));
+        }
+
+        long ta = System.currentTimeMillis();
+        Arrays.sort(arrays[arrays.length - 1]);
+        long tb = System.currentTimeMillis();
+
+        System.out.println("Arrays.sort() in " + (tb - ta) + " ms, sorted: "
+                + isSorted(arrays[arrays.length - 1]));
+
+        line();
+
+        System.out.println("All arrays same: " + allWeakEquals(arrays));
+    }
+
+    private static void profileBinaryHeap() {
+        BinaryHeap<Integer, Integer> heap = new BinaryHeap<Integer, Integer>();
+
+        for (int i = 10; i > 0; --i) {
+            heap.insert(i, i);
+        }
+
+        while(heap.isEmpty() == false) {
+            System.out.print(heap.extractMinimum() + " ");
+        }
+
+        System.out.println();
+
+        heap.clear();
+        line();
+
+        for (int i = 10; i > 0; --i) {
+            heap.insert(i, i);
+        }
+
+        heap.decreasePriority(10, 0);
+
+        while(heap.isEmpty() == false) {
+            System.out.print(heap.extractMinimum() + " ");
+        }
+
+        System.out.println();
+    }
+
+    private static void profileFibonacciHeap() {
+        FibonacciHeap<Integer, Integer> heap =
+                new FibonacciHeap<Integer, Integer>();
+
+        for (int i = 10; i > 0; --i) {
+            heap.insert(i, i);
+        }
+
+        while(heap.isEmpty() == false) {
+            System.out.println("Removing: " + heap.min());
+            heap.extractMinimum();
+        }
+
+        System.out.println();
+
+        heap.clear();
+        line();
+
+        for (int i = 10; i > 0; --i) {
+            heap.insert(i, i);
+        }
+
+        heap.decreasePriority(10, 0);
+
+        while(heap.isEmpty() == false) {
+            System.out.print(heap.extractMinimum() + " ");
+        }
+
+        System.out.println();
+    }
+
+    private static void profileShortestPathAlgorithmsOn(
+            PriorityQueue<DirectedGraphNode, Double> pq,
+            int size,
+            long seed,
+            float lf) {
+        title2("General shortest path algorithms with " + pq.getClass().getName());
+
+        Random r = new Random(seed);
+        Triple<List<DirectedGraphNode>,
+               DirectedGraphWeightFunction,
+               CoordinateMap> triple =
+                getRandomGraph(size, lf, r, new EuclidianMetric(null, null));
+
+        DirectedGraphNode source = triple.first.get(r.nextInt(size));
+        DirectedGraphNode target = triple.first.get(r.nextInt(size));
+
+        System.out.println("Source: " + source.toString());
+        System.out.println("Target: " + target.toString());
+
+        PriorityQueue<DirectedGraphNode, Double> OPEN = pq.newInstance();
+
+        GeneralPathFinder finder1 = new DijkstraFinder(OPEN);
+
+        long ta = System.currentTimeMillis();
+
+        List<DirectedGraphNode> path1 =
+                finder1.find(source, target, triple.second);
+
+        long tb = System.currentTimeMillis();
+
+        System.out.println("DijkstraFinder in " + (tb - ta) + " ms, "
+                + "path connected: " + isConnectedPath(path1)
+                + ", cost: " + getPathCost(path1, triple.second));
+
+        OPEN = pq.newInstance();
+
+        GeneralPathFinder finder2 =
+                new AStarFinder(OPEN,
+                                new EuclidianMetric(
+                                    triple.third,
+                                    target));
+
+        ta = System.currentTimeMillis();
+
+        List<DirectedGraphNode> path2 =
+                finder2.find(source, target, triple.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("AStarFinder in " + (tb - ta) + " ms, "
+                + "path connected: " + isConnectedPath(path2)
+                + ", cost: " + getPathCost(path2, triple.second));
+
+        OPEN = pq.newInstance();
+
+        GeneralPathFinder finder3 =
+                new BidirectionalDijkstraFinder(OPEN);
+
+        ta = System.currentTimeMillis();
+
+        List<DirectedGraphNode> path3 =
+                finder3.find(source, target, triple.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("BidirectionalDijkstraFinder in " + (tb - ta)
+                + " ms, " + "path connected: " + isConnectedPath(path3)
+                + ", cost: " + getPathCost(path3, triple.second));
+
+        GeneralPathFinder finder4 =
+                new BHPAFinder(OPEN,
+                               new EuclidianMetric(
+                                    triple.third,
+                                    target),
+                               new EuclidianMetric(
+                                    triple.third,
+                                    source));
+
+        ta = System.currentTimeMillis();
+
+        List<DirectedGraphNode> path4 =
+                finder4.find(source, target, triple.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("BHPAFinder in " + (tb - ta)
+                + " ms, " + "path connected: " + isConnectedPath(path4)
+                + ", cost: " + getPathCost(path4, triple.second));
+
+        GeneralPathFinder finder5 =
+                new WhangboFinder(OPEN,
+                               new EuclidianMetric(
+                                    triple.third,
+                                    target),
+                               new EuclidianMetric(
+                                    triple.third,
+                                    source));
+
+        ta = System.currentTimeMillis();
+
+        List<DirectedGraphNode> path5 =
+                finder5.find(source, target, triple.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("WhangboFinder in " + (tb - ta)
+                + " ms, " + "path connected: " + isConnectedPath(path4)
+                + ", cost: " + getPathCost(path5, triple.second));
+
+        GeneralPathFinder finder6 =
+                new FastSuboptimalFinder(OPEN,
+                               new EuclidianMetric(
+                                    triple.third,
+                                    target),
+                               new EuclidianMetric(
+                                    triple.third,
+                                    source));
+
+        ta = System.currentTimeMillis();
+
+        List<DirectedGraphNode> path6 =
+                finder6.find(source, target, triple.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("FastSuboptimalFinder in " + (tb - ta)
+                + " ms, " + "path connected: " + isConnectedPath(path4)
+                + ", cost: " + getPathCost(path6, triple.second));
+
+        line();
+
+        System.out.println("Paths are same: " + pathsAreSame(path1,
+                                                             path2,
+                                                             path3,
+                                                             path4,
+                                                             path5,
+                                                             path6));
+
+        line();
+    }
+
+    private static void profileShortestPathAlgorithms() {
+        final int N = 20000;
+        final float LOAD_FACTOR = 10.0f / N;
+        final long SEED = System.currentTimeMillis();
+
+        /*
+         * Seed 1396252274440L, 1396255300780L produces an invalid result in BHPA.
+         */
+
+        title("General shortest path algorihtms with " + N + " nodes");
+        System.out.println("Seed: " + SEED);
+
+        profileShortestPathAlgorithmsOn(
+                new BinaryHeap<DirectedGraphNode, Double>(),
+                N,
+                SEED,
+                LOAD_FACTOR);
+
+        profileShortestPathAlgorithmsOn(
+                new FibonacciHeap<DirectedGraphNode, Double>(),
+                N,
+                SEED,
+                LOAD_FACTOR);
+    }
+
+    private static void debugHeapSelectionSort() {
+        Random r = new Random();
+        Integer[] array = getRandomIntegerArray(10, 0, 10, r);
+
+        debugPrintArray(array);
+        new HeapSelectionSort<Integer>().sort(array);
+        debugPrintArray(array);
+    }
+
+    private static void debugOST() {
+        OrderStatisticTree<Integer, Integer> tree =
+                new OrderStatisticTree<Integer, Integer>();
+
+        for (int i = 0; i < 100; ++i) {
+            tree.put(i, i);
+        }
+
+        System.out.println("Size: " + tree.size());
+
+        for (Integer i = 0; i < tree.size(); ++i) {
+            System.out.println("i.equals(tree.get(i)): " + i.equals(tree.get(i)));
+            System.out.println("i.equals(tree.entryAt(i).getKey()): " + i.equals(tree.entryAt(i).getKey()));
+            System.out.println("i.equals(tree.entryAt(i).getValue()): " + i.equals(tree.entryAt(i).getValue()));
+            System.out.println(i + ".equals(" + tree.rankOf(i) + "): " + i.equals(tree.rankOf(i)));
+        }
+
+        for (Integer i = 20; i < 100; ++i) {
+            tree.remove(i);
+        }
+
+        System.out.println("size: " + tree.size());
+        System.out.println("Healthy: " + tree.isHealthy());
+    }
+
+    private static void debugMaxFlowAlgorithms() {
+        DirectedGraphNode Vancouver = new DirectedGraphNode("Vancover");
+        DirectedGraphNode Edmonton = new DirectedGraphNode("Edmonton");
+        DirectedGraphNode Calgary = new DirectedGraphNode("Calgary");
+        DirectedGraphNode Saskatoon = new DirectedGraphNode("Saskatoon");
+        DirectedGraphNode Regina = new DirectedGraphNode("Regina");
+        DirectedGraphNode Winnipeg = new DirectedGraphNode("Winnipeg");
+
+        DirectedGraphWeightFunction c = new DirectedGraphWeightFunction();
+
+        /// 1 - 3
+        Vancouver.addChild(Edmonton);
+        c.put(Vancouver, Edmonton, 16.0);
+
+        Vancouver.addChild(Calgary);
+        c.put(Vancouver, Calgary, 13.0);
+
+        Calgary.addChild(Edmonton);
+        c.put(Calgary, Edmonton, 4.0);
+
+        /// 4 - 6
+        Edmonton.addChild(Saskatoon);
+        c.put(Edmonton, Saskatoon, 12.0);
+
+        Saskatoon.addChild(Calgary);
+        c.put(Saskatoon, Calgary, 9.0);
+
+        Calgary.addChild(Regina);
+        c.put(Calgary, Regina, 14.0);
+
+        /// 7 - 9
+        Saskatoon.addChild(Winnipeg);
+        c.put(Saskatoon, Winnipeg, 20.0);
+
+        Regina.addChild(Saskatoon);
+        c.put(Regina, Saskatoon, 7.0);
+
+        Regina.addChild(Winnipeg);
+        c.put(Regina, Winnipeg, 4.0);
+
+        Pair<DirectedGraphWeightFunction, Double> pair =
+                new EdmondKarpFlowFinder().find(Vancouver, Winnipeg, c);
+
+        System.out.println("EdmondKarpFlowFinder: " + pair.second);
+
+        Pair<DirectedGraphWeightFunction, Double> pair2 =
+                new BidirectionalEdmondKarpFlowFinder().find(Vancouver,
+                                                             Winnipeg,
+                                                             c);
+
+        System.out.println("BidirectionalEdmonFlowFinder: " + pair2.second);
+    }
+
+    private static void profileMaxFlowAlgorithms() {
+        final int N = 5000;
+        final float ELF = 5.0f / N;
+        final long SEED = System.currentTimeMillis();
+
+        title("Max-flow algorithm demo");
+        System.out.println("Seed: " + SEED);
+
+        Random r = new Random(SEED);
+
+        Pair<List<DirectedGraphNode>, DirectedGraphWeightFunction> pair =
+                Utilities.getRandomFlowNetwork(N, ELF, r, 10.0);
+
+        FlowFinder.resolveParallelEdges(pair.first, pair.second);
+        FlowFinder.removeSelfLoops(pair.first);
+
+        DirectedGraphNode source = pair.first.get(r.nextInt(N));
+        DirectedGraphNode sink = pair.first.get(r.nextInt(N));
+
+        System.out.println("Source: " + source.toString());
+        System.out.println("Sink:   " + sink.toString());
+        long ta = System.currentTimeMillis();
+
+        Pair<DirectedGraphWeightFunction, Double> result1 =
+                new EdmondKarpFlowFinder()
+                .find(source, sink, pair.second);
+
+        long tb = System.currentTimeMillis();
+
+        System.out.println("EdmondKarpFlowFinder in " + (tb - ta)
+                + " ms, |f| = " + result1.second);
+
+        ta = System.currentTimeMillis();
+
+        Pair<DirectedGraphWeightFunction, Double> result2 =
+                new BidirectionalEdmondKarpFlowFinder()
+                .find(source, sink, pair.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("BidirectionalEdmondKarpFlowFinder in " + (tb - ta)
+                + " ms, |f| = " + result2.second);
+
+        ta = System.currentTimeMillis();
+
+        line();
+
+        System.out.println(
+                "Flows equal: " + epsilonEquals(0.001,
+                                                result1.second,
+                                                result2.second));
+    }
+
+    private static void profileMSTAlgorithms() {
+        final int N = 50;
+        final float ELF = 5.0f / N;
+        final long SEED = System.currentTimeMillis();
+
+        title("Minimum-spanning-tree algorithm demo");
+        System.out.println("Seed: " + SEED);
+
+        Random r = new Random(SEED);
+
+        Pair<List<UndirectedGraphNode>, UndirectedGraphWeightFunction> pair =
+                Utilities.getRandomUndirectedGraph(N, ELF, r, 10.0);
+
+        MinimumSpanningTreeFinder finder1 =
+                new KruskalMSTFinder();
+
+        long ta = System.currentTimeMillis();
+
+        Pair<List<UndirectedGraphEdge>, Double> result1 =
+                finder1.find(pair.first, pair.second);
+
+        long tb = System.currentTimeMillis();
+
+        System.out.println("Kruskal in " + (tb - ta) + " ms, " +
+                "cost: " + result1.second +
+                "/" + sumEdgeWeights(result1.first) +
+                ", is spanning forest: " + isSpanningTree(result1.first)
+                );
+
+        MinimumSpanningTreeFinder finder2 =
+                new PrimMSTFinder();
+
+        ta = System.currentTimeMillis();
+
+        Pair<List<UndirectedGraphEdge>, Double> result2 =
+                finder2.find(pair.first, pair.second);
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("Prim in " + (tb - ta) + " ms, " +
+                "cost: " + result2.second + "/" +
+                sumEdgeWeights(result2.first) +
+                ", is spanning forest: " + isSpanningTree(result2.first));
+
+        line();
+
+        System.out.println("MST equal: " + spanningTreesEqual(result1.first,
+                                                              result2.first));
+    }
+
+    private static void profileTreeList() {
+        TreeList<Integer> list = new TreeList<Integer>();
+        org.apache.commons.collections4.list.TreeList<Integer> enemyList =
+                new org.apache.commons.collections4.list.TreeList<Integer>();
+
+        title("coderodde's TreeList vs. Commons Collections TreeList");
+
+        title2("Adding");
+
+        System.out.println("My TreeList is healthy: " + list.isHealthy());
+
+        long ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; ++i) {
+            list.add(i);
+        }
+
+        long tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.add in " + (tb - ta) + " ms.");
+
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; ++i) {
+            enemyList.add(i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.add in " + (tb - ta) + " ms.");
+        System.out.println("My TreeList is healthy: " + list.isHealthy());
+
+        title2("Getting by index");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; ++i) {
+            if (list.get(i) != i) {
+                System.out.println("coderodde's TreeList.get(int) is broken!");
+                break;
+            }
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.get in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 100000; ++i) {
+            if (enemyList.get(i) != i) {
+                System.out.println("CC TreeList.get(int) is broken!");
+                break;
+            }
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.get in " + (tb - ta) + " ms.");
+
+        title2("Removing");
+
+        ta = System.currentTimeMillis();
+
+        Integer tmp;
+
+        for (int i = 99999; i >= 0; --i) {
+            if (i % 2 == 1) {
+                if ((tmp = list.remove(i)) != i) {
+                    System.out.println("coderodde's TreeList.remove(int) is " +
+                            "broken! " + tmp + " at " + i
+                            );
+                    break;
+                }
+            }
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.remove in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 99999; i >= 0; --i) {
+            if (i % 2 == 1) {
+                if ((tmp = enemyList.remove(i)) != i) {
+                    System.out.println("CC TreeList.remove(int) is broken! "
+                            + tmp + " at " + i);
+                    break;
+                }
+            }
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.remove in " + (tb - ta) + " ms.");
+
+        System.out.println("My TreeList is healthy: " + list.isHealthy());
+
+        title2("Removing from head");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 20000; i > 0; --i) {
+            list.removeFirst();
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.removeFirst in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 20000; i > 0; --i) {
+                enemyList.remove(0);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.removeFirst hack in " + (tb - ta)
+                + " ms.");
+
+        System.out.println("My TreeList is healthy: " + list.isHealthy());
+
+        title2("Removing from tail");
+
+        list.clear();
+        enemyList.clear();
+
+        for (int i = 0; i < 100000; ++i) {
+            list.add(i);
+            enemyList.add(i);
+        }
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 20000; i > 0; --i) {
+            list.removeLast();
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.removeLast in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 20000; i > 0; --i) {
+            enemyList.remove(enemyList.size() - 1);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.removeLast hack in " + (tb - ta) +
+                " ms.");
+
+        System.out.println("My TreeList is healty: " + list.isHealthy());
+
+        title2("Resetting elements");
+
+        Random r = new Random();
+
+        int[] resetIndices = new int[list.size() / 2];
+
+        for (int i = 0; i < resetIndices.length; ++i) {
+            resetIndices[i] = r.nextInt(list.size() / 2);
+        }
+
+        ta = System.currentTimeMillis();
+
+        for (int i : resetIndices) {
+            list.set(i, i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.set in " + (tb - ta) + " ms.");
+
+        ta = System.currentTimeMillis();
+
+        for (int i : resetIndices) {
+            enemyList.set(i, i);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.set in " + (tb - ta) + " ms.");
+
+        System.out.println("My TreeList is healthy: " + list.isHealthy());
+
+        title2("Adding at arbitrary location");
+
+        final long SEED = 12321L; //System.currentTimeMillis();
+
+        r = new Random(SEED);
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i < 10000; ++i) {
+            int t = r.nextInt(list.size());
+            list.add(t, t);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("My TreeList.add(int, E) in " + (tb - ta) + " ms.");
+
+        r = new Random(SEED);
+
+        ta = System.currentTimeMillis();
+
+        for (int i = 0; i <10000; ++i) {
+            int t = r.nextInt(enemyList.size());
+            enemyList.add(t, t);
+        }
+
+        tb = System.currentTimeMillis();
+
+        System.out.println("CC TreeList.add(int, E) in " + (tb - ta) + " ms.");
+
+        System.out.println("My TreeList is healthy: " + list.isHealthy());
+    }
+
+    private static void debugTreeList() {
+        TreeList<Integer> tl = new TreeList<Integer>(3);
+
+        tl.add(0, 0);
+
+        Random r = new Random(12321L);
+
+        for (int i = 0; i < 14; ++i) {
+            int yo = r.nextInt(tl.size());
+            tl.add(yo, yo);
+        }
+
+        System.out.println("TreeList is healthy after add(int, E): "
+                + tl.isHealthy());
+
+        while (tl.isEmpty() == false) {
+            tl.removeFirst();
+            System.out.println("Healthy: " + tl.isHealthy());
+        }
+    }
+
+    private static void debugTreeList2() {
+        org.apache.commons.collections4.list.TreeList<Integer> el =
+                new org.apache.commons.collections4.list.TreeList<Integer>();
+
+        TreeList<Integer> ml = new TreeList<Integer>(2);
+        Random r = new Random(313L);
+
+        el.add(-1);
+
+        for (int i = 0; i < 10; ++i) {
+
+            el.add(i, i);
+//            System.out.println(i + ": " + ml.isHealthy());
+        }
+
+        System.out.println(ml.isHealthy());
+
+        for (Integer i : el) {
+            System.out.print(i + " ");
+        }
+
+        System.out.println();
+    }
+
+    private static void debugTreeList3() {
+        TreeList<Integer> list = new TreeList<Integer>(3);for (int i = 0; i < 40; ++i) {
+            list.add(i, i);
+        }
+
+        Iterator<Integer> it = list.descendingIterator();
+
+        System.out.println(it.hasNext());
+
+        it.next();
+        Integer tmp = it.next();
+
+        System.out.println(new Integer(38).equals(tmp));
+
+        it.remove();
+
+        System.out.println(new Integer(39).equals(list.get(list.size() - 1)));
+        System.out.println(new Integer(37).equals(list.get(list.size() - 2)));
+        System.out.println("Healthy: " + list.isHealthy());
+
+
+        System.out.println("Moving...");
+        for (int i = 0; i < 19; ++i) {
+            System.out.println(it.hasNext());
+            it.next();
+        }
+
+        for (int i = 0; i < 6; ++i) {
+            System.out.println(it.hasNext() + " at " + i);
+            it.next();
+            it.remove();
+            System.out.println("Healthy: " + list.isHealthy());
+        }
+    }
+}
